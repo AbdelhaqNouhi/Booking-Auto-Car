@@ -5,7 +5,9 @@ const {
     GetAllUser,
     CreateUser,
     LoginUser,
-    GetUserBtId
+    GetUserBtId,
+    UpdateUser,
+    DeleteUser
 } = require('../Controllers/Auth/UserController');
 
 module.exports = function (app, url) {
@@ -15,4 +17,6 @@ module.exports = function (app, url) {
     router.get('/GetUserById/:id', GetUserBtId);
     router.post('/CreateUser', CreateUser);
     router.post('/LoginUser', LoginUser);
+    router.put('/UpdateUser/:id', UpdateUser);
+    router.delete('/DeleteUser/:id', DeleteUser);
 }

@@ -100,7 +100,6 @@ const CreateUser = asyncHandler(async (req, res) => {
     }
 })
 
-
 const LoginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body
 
@@ -151,11 +150,71 @@ const LoginUser = asyncHandler(async (req, res) => {
     })
 })
 
+const UpdateUser = asyncHandler(async (req, res) => {
+    const { first_name, last_name, birthday, photo, phone, email, password } = req.body
+
+    // check is email   
+    if (!email.includes('@')) {
+        res.status(401).json({ status: "invalid email" })
+    }
+
+    // check length of password
+    if (password.length < 8) {
+        res.status(401).json({ status: "password must be at least 8 characters" })
+    }
+
+    //  check if all fields exists
+    if (!first_name || !last_name || !birthday || !photo || !phone || !email || !password) {
+        res.status(401)
+        throw new Error("please add all fields")
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10)
+    const HashPassword = await bcrypt.hash(password, salt)
+    
+    // update User
+    try {
+        const user = await prisma.user.update({
+            where: {
+                id: Number(req.params.id)
+            },
+            data: {
+                first_name,
+                last_name,
+                birthday,
+                photo,
+                phone,
+                email,
+                password: HashPassword
+            }
+        })
+        res.status(201).json(user)
+    } catch (err) {
+        res.status(401).json({ status: "fail", message: err.message })
+    }
+})
+
+const DeleteUser = asyncHandler(async (req, res) => {
+    try {
+        const user = await prisma.user.delete({
+            where: {
+                id: Number(req.params.id)
+            }
+        })
+        res.status(201).json(user)
+    } catch (err) {
+        res.status(401).json({ status: "fail", message: err.message })
+    }
+})
+
 module.exports = {
     GetAllUser,
     GetUserBtId,
     CreateUser,
     LoginUser,
+    UpdateUser,
+    DeleteUser
 }
 
 
