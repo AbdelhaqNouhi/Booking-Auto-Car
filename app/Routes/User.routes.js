@@ -3,7 +3,7 @@ const router = express.Router();
 
 const {
     GetAllUser,
-    RegisterUser,
+    CreateUser,
     LoginUser,
     GetUserBtId
 } = require('../Controllers/Auth/UserController');
@@ -13,6 +13,6 @@ module.exports = function (app, url) {
 
     router.get('/GetAllUser', GetAllUser);
     router.get('/GetUserById/:id', GetUserBtId);
-    router.post('/RegisterUser', RegisterUser);
+    router.post('/CreateUser', CreateUser);
     router.post('/LoginUser', LoginUser);
 }

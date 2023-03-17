@@ -45,9 +45,9 @@ const GetUserBtId = asyncHandler(async (req, res) => {
     }
 })
 
-const RegisterUser = asyncHandler(async (req, res) => {
+const CreateUser = asyncHandler(async (req, res) => {
 
-    const { first_name, last_name, cin, phone, email, password } = req.body
+    const { first_name, last_name , birthday, photo, phone, email, password } = req.body
 
     // check is email
     if (!email.includes('@')) {
@@ -60,23 +60,20 @@ const RegisterUser = asyncHandler(async (req, res) => {
     }
 
     //  check if all fields exists
-    if (!first_name || !last_name || !cin || !phone || !email || !password) {
+    if (!first_name || !last_name || !birthday || !photo || !phone || !email || !password) {
         res.status(401)
         throw new Error("please add all fields")
     }
 
     // check if user exists by email
-    const UserExists = await UserModule.findOne({ email })
-
-    if (UserExists) {
-        res.status(401).json({ status: "user already exists" })
-    }
-
-    // check if user exists by cin
-    const UserExistsByCin = await UserModule.findOne({ cin })
-
-    if (UserExistsByCin) {
-        res.status(401).json({ status: "user already exists" })
+    const userExists = await prisma.user.findUnique({
+        where: {
+            email: email
+        }
+    })
+    if (userExists) {
+        res.status(401)
+        throw new Error("user already exists")
     }
 
     // Hash password
@@ -85,12 +82,21 @@ const RegisterUser = asyncHandler(async (req, res) => {
 
     // create User
     try {
-        const user = await UserModule.create({ first_name, last_name, cin, phone, email, password: HashPassword })
+        const user = await prisma.user.create({
+            data: {
+                first_name,
+                last_name,
+                birthday,
+                photo,
+                phone,
+                email,
+                password: HashPassword
+            }
+        })
         res.status(201).json(user)
-    }
-    catch (err) {
-        const errors = handleErrors(err)
-        res.status(401).json({ errors })
+
+    } catch (err) {
+        res.status(401).json({ status: "fail", message: err.message })
     }
 })
 
@@ -148,7 +154,7 @@ const LoginUser = asyncHandler(async (req, res) => {
 module.exports = {
     GetAllUser,
     GetUserBtId,
-    RegisterUser,
+    CreateUser,
     LoginUser,
 }
 

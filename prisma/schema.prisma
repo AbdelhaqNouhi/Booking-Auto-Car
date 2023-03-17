@@ -11,14 +11,14 @@ datasource db {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  nom         String
-  prenom      String
-  naissance   String
-  photo       String
-  telephone   Int
-  email       String   @unique
-  mot_de_passe String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  first_name    String
+  last_name     String
+  birthday      String
+  photo         String
+  phone         Int
+  email         String   @unique
+  password      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
