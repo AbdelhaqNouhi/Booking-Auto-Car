@@ -1,7 +1,6 @@
 const JWt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const asyncHandler = require('express-async-handler')
-const UserModule = require('../../Models/UserModel');
 const { PrismaClient } = require('@prisma/client')
 
 const prisma = new PrismaClient()
