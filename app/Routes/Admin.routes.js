@@ -7,10 +7,14 @@ const {
     LoginAdmin
 } = require('../Controllers/Auth/AdminController');
 
+const {
+    authMiddleware,
+} = require('../Middlewares/AuthMiddleware');
+
 module.exports = function (app, url) {
     app.use(url, router);
 
-    router.get('/GetAllAdmin', GetAllAdmin);
-    router.post('/CreateAdmin', CreateAdmin);
-    router.post('/LoginAdmin', LoginAdmin);
+    router.get('/GetAllAdmin', authMiddleware, GetAllAdmin);
+    router.post('/CreateAdmin', authMiddleware, CreateAdmin);
+    router.post('/LoginAdmin', authMiddleware, LoginAdmin);
 }

@@ -5,8 +5,12 @@ const {
     CreateRole,
 } = require('../Controllers/RoleController');
 
+const {
+    authMiddleware,
+} = require('../Middlewares/AuthMiddleware');
+
 module.exports = function (app, url) {
     app.use(url, router);
 
-    router.post('/createRole', CreateRole);
+    router.post('/createRole', authMiddleware, CreateRole);
 }

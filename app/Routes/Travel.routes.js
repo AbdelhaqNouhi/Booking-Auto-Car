@@ -10,13 +10,18 @@ const {
     DeleteTravel
 } = require('../Controllers/TravelController');
 
+const {
+    authMiddleware,
+} = require('../Middlewares/AuthMiddleware');
+
+
 module.exports = function (app, url) {
     app.use(url, router);
 
-    router.get('/GetAllTravel', GetAllTravel);
-    router.get('/GetTravelById/:id', GetTravelById);
-    router.post('/CreateTravel', CreateTravel);
-    router.get('/SearchTravel/:from/:to/:date', SearchTravel);
-    router.put('/UpdateTravel/:id', UpdateTravel);
-    router.delete('/DeleteTravel/:id', DeleteTravel);
+    router.get('/GetAllTravel', authMiddleware, GetAllTravel);
+    router.get('/GetTravelById/:id', authMiddleware, GetTravelById);
+    router.post('/CreateTravel', authMiddleware, CreateTravel);
+    router.get('/SearchTravel/:from/:to/:date', authMiddleware, SearchTravel);
+    router.put('/UpdateTravel/:id', authMiddleware, UpdateTravel);
+    router.delete('/DeleteTravel/:id', authMiddleware, DeleteTravel);
 }

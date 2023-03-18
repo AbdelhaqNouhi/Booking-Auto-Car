@@ -9,12 +9,16 @@ const {
     DeleteTicket
 } = require('../Controllers/TicketController');
 
+const {
+    authMiddleware,
+} = require('../Middlewares/AuthMiddleware');
+
 module.exports = function (app, url) {
     app.use(url, router);
 
-    router.get('/GetAllTicket', GetAllTicket);
-    router.get('/GetOneTicket/:id', GetOneTicket);
-    router.post('/CreateTicket', CreateTicket);
-    router.put('/UpdateTicket/:id', UpdateTicket);
-    router.delete('/DeleteTicket/:id', DeleteTicket);
+    router.get('/GetAllTicket', authMiddleware, GetAllTicket);
+    router.get('/GetOneTicket/:id', authMiddleware, GetOneTicket);
+    router.post('/CreateTicket', authMiddleware, CreateTicket);
+    router.put('/UpdateTicket/:id', authMiddleware, UpdateTicket);
+    router.delete('/DeleteTicket/:id', authMiddleware, DeleteTicket);
 }

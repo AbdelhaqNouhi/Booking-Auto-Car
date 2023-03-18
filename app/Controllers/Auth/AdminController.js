@@ -128,7 +128,7 @@ const LoginAdmin = asyncHandler(async (req, res) => {
     }
 
     //  create token
-    const token = JWt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    const token = JWt.sign({ id: user.roleId }, process.env.JWT_SECRET, {
         expiresIn: 60 * 60 * 24
     })
 
