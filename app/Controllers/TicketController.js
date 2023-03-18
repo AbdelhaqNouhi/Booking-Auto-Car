@@ -81,7 +81,7 @@ const GetOneTicket = asyncHandler(async (req, res) => {
                 id: parseInt(req.params.id)
             }
         })
-        res.status(201).json(ticket)
+        res.status(201).json({ status: "success", message: "Ticket deleted successfully" })
 
     } catch (err) {
         res.status(401).json({ status: "fail", message: err.message })

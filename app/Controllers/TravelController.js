@@ -3,7 +3,18 @@ const { PrismaClient } = require('@prisma/client')
 
 const prisma = new PrismaClient()
 
-const SearchTravel = async (req, res) => {
+const handleErrors = (err) => {
+    let errors = { first_name: '', last_name: '', cin: '', phone: '', email: '', password: '' }
+
+    if (err.message.includes("Travel validation failed")) {
+        Object.values(err.errors).forEach(({ properties }) => {
+            errors[properties.path] = properties.message
+        })
+    }
+    return errors;
+}
+
+const SearchTravel = asyncHandler (async (req, res) => {
     const { from, to, date } = req.params;
 
     const searchResults = await prisma.travel.findMany({
@@ -20,18 +31,18 @@ const SearchTravel = async (req, res) => {
     }
 
     res.status(201).json(searchResults);
-};
+});
 
-const GetAllTravel = async (req, res) => {
+const GetAllTravel = asyncHandler (async(req, res) => {
     try {
         const travels = await prisma.travel.findMany();
         res.status(201).json(travels);
     } catch (error) {
         res.status(401).json({ status: 'fail' });
     }
-};
+});
 
-const GetTravelById = async (req, res) => {
+const GetTravelById = asyncHandler (async(req, res) => {
     try {
         const travel = await prisma.travel.findUnique({
             where: {
@@ -46,7 +57,7 @@ const GetTravelById = async (req, res) => {
     } catch (error) {
         res.status(401).json({ status: 'undefined travel' });
     }
-};
+});
 
 const CreateTravel = asyncHandler(async (req, res) => {
     const { from, to, date, time } = req.body;
@@ -91,30 +102,31 @@ const UpdateTravel = async (req, res) => {
     }
 };
 
-const DeleteTravel = async (req, res) => {
-    try {
-        const travel = await prisma.travel.findUnique({
-            where: {
-                id: parseInt(req.params.id),
-            },
-        });
-
-        if (!travel) {
-            res.status(400).json({ status: 'travel not found' });
-            return;
-        }
-
-        await prisma.travel.delete({
-            where: {
-                id: parseInt(req.params.id),
-            },
-        });
-        res.status(200).json({ status: 'success' });
+const DeleteTravel = asyncHandler (async (req, res) => {
     
-    } catch (error) {
-        res.status(401).json({ status: 'failed to delete travel' });
+    const travel = await prisma.travel.findUnique({
+        where: {
+            id: parseInt(req.params.id),
+        },
+    });
+
+    if (!travel) {
+        res.status(401).json({ status: 'travel not found' });
+        return;
     }
-};
+
+    try {
+        const deletedTravel = await prisma.travel.delete({
+            where: {
+                id: parseInt(req.params.id),
+            },
+        });
+        res.status(201).json({ status: 'success', message: 'travel deleted successfully'});
+
+    } catch (err) {
+        res.status(401).json({ status: "fail", message: err.message })
+    }
+});
 
 module.exports = {
     SearchTravel,

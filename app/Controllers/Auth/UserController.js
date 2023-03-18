@@ -207,7 +207,7 @@ const DeleteUser = asyncHandler(async (req, res) => {
                 id: Number(req.params.id)
             }
         })
-        res.status(201).json(user)
+        res.status(201).json({ status: "user deleted successfully" })
     } catch (err) {
         res.status(401).json({ status: "fail", message: err.message })
     }
