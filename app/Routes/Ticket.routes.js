@@ -13,8 +13,8 @@ module.exports = function (app, url) {
     app.use(url, router);
 
     router.get('/GetAllTicket', GetAllTicket);
-    router.get('/GetOneTicket', GetOneTicket);
+    router.get('/GetOneTicket/:id', GetOneTicket);
     router.post('/CreateTicket', CreateTicket);
-    router.put('/UpdateTicket', UpdateTicket);
-    router.delete('/DeleteTicket', DeleteTicket);
+    router.put('/UpdateTicket/:id', UpdateTicket);
+    router.delete('/DeleteTicket/:id', DeleteTicket);
 }
