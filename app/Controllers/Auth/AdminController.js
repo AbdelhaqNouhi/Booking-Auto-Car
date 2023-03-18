@@ -9,7 +9,7 @@ const prisma = new PrismaClient()
 const handleErrors = (err) => {
     let errors = { first_name: '', last_name: '', cin: '', phone: '', email: '', password: '' }
 
-    if (err.message.includes("User validation failed")) {
+    if (err.message.includes("Admin validation failed")) {
         Object.values(err.errors).forEach(({ properties }) => {
             errors[properties.path] = properties.message
         })
@@ -49,12 +49,12 @@ const CreateAdmin = asyncHandler(async (req, res) => {
     }
 
     // check if user exists by email
-    const user = await prisma.admin.findUnique({
+    const admin = await prisma.admin.findUnique({
         where: {
             email: email
         }
     })
-    if (user) {
+    if (admin) {
         res.status(401).json({ status: "user already exists" })
     }
 
@@ -84,7 +84,7 @@ const CreateAdmin = asyncHandler(async (req, res) => {
                 roleId: parseInt(roleId)
             }
         })
-        res.status(201).json(admin)
+        res.status(201).json({ status: "admin created successfully", id: admin.id, email: admin.email})
 
     } catch (err) {
         const errors = handleErrors(err)

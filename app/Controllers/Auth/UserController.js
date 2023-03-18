@@ -90,10 +90,9 @@ const CreateUser = asyncHandler(async (req, res) => {
     const salt = await bcrypt.genSalt(10)
     const HashPassword = await bcrypt.hash(password, salt)
 
-
     // Create the new user
     try {
-        const newUser = await prisma.user.create({
+        const user = await prisma.user.create({
             data: {
                 first_name: first_name,
                 last_name: last_name,
@@ -105,16 +104,13 @@ const CreateUser = asyncHandler(async (req, res) => {
                 roleId: roleId
             }
         });
+        res.status(201).json({ status: "admin created successfully", id: user.id, email: user.email })
 
-        console.log("User saved successfully!");
-        console.log(newUser);
     } catch (error) {
-        console.log("Error saving user: ", error);
+        const errors = handleErrors(err)
+        res.status(401).json({ status: "fail", message: errors })
     }
-
 })
-
-//  login user with role
 
 const LoginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body
@@ -197,9 +193,10 @@ const UpdateUser = asyncHandler(async (req, res) => {
                 password: HashPassword
             }
         })
-        res.status(201).json(user)
+        res.status(201).json({ status: "admin update successfully", id: admin.id, email: admin.email })
     } catch (err) {
-        res.status(401).json({ status: "fail", message: err.message })
+        const errors = handleErrors(err)
+        res.status(401).json({ status: "fail", message: errors })
     }
 })
 
