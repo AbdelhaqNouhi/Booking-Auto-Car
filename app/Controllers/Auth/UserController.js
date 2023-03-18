@@ -125,7 +125,7 @@ const LoginUser = asyncHandler(async (req, res) => {
     }
 
     // check length of password
-    if (password.length < 6) {
+    if (password.length < 8) {
         res.status(401).json({ status: "invalid email or password..!!" })
     }
 
@@ -155,18 +155,7 @@ const LoginUser = asyncHandler(async (req, res) => {
         expiresIn: 60 * 60 * 24
     })
 
-    res.status(201).json({
-        _id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        birthday: user.birthday,
-        photo: user.photo,
-        phone: user.phone,
-        email: user.email,
-        password: user.password,
-        roleId: user.roleId,
-        token: token
-    })
+    res.status(201).json({ status: "success", token: token})
 })
 
 const UpdateUser = asyncHandler(async (req, res) => {
