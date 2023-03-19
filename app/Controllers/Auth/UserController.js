@@ -5,9 +5,8 @@ const { PrismaClient } = require('@prisma/client')
 
 const prisma = new PrismaClient()
 
-
 const handleErrors = (err) => {
-    let errors = { first_name: '', last_name: '', cin: '', phone: '', email: '', password: '' }
+    let errors = { prenom, nom, date_de_naissance, telephone, email, mot_de_passe, roleId }
 
     if (err.message.includes("User validation failed")) {
         Object.values(err.errors).forEach(({ properties }) => {
@@ -20,7 +19,7 @@ const handleErrors = (err) => {
 const GetAllUser = asyncHandler(async (req, res) => {
 
     try {
-        const users = await prisma.User.findMany()
+        const users = await prisma.Utilisateur.findMany()
         res.status(201).json(users)
 
     } catch (err) {
@@ -32,7 +31,7 @@ const GetAllUser = asyncHandler(async (req, res) => {
 const GetUserBtId = asyncHandler(async (req, res) => {
 
     try {
-        const user = await prisma.user.findUnique({
+        const user = await prisma.Utilisateur.findUnique({
             where: {
                 id: parseInt(req.params.id)
             }
@@ -44,9 +43,74 @@ const GetUserBtId = asyncHandler(async (req, res) => {
     }
 })
 
+// const CreateUser = asyncHandler(async (req, res) => {
+
+//     const { prenom, nom, date_de_naissance, telephone, email, mot_de_passe } = req.body
+
+//     // check is email
+//     if (!email.includes('@')) {
+//         res.status(401).json({ status: "invalid email" })
+//     }
+
+//     // check length of password
+//     if (mot_de_passe.length < 8) {
+//         res.status(401).json({ status: "password must be at least 8 characters" })
+//     }
+
+//     //  check if all fields exists
+//     if (!prenom || !nom || !date_de_naissance || !telephone || !email || !mot_de_passe) {
+//         res.status(401)
+//         throw new Error("please add all fields")
+//     }
+
+//     // check if user exists by email
+//     const userExists = await prisma.Utilisateur.findUnique({
+//         where: {
+//             email: email
+//         }
+//     })
+//     if (userExists) {
+//         res.status(401)
+//         throw new Error("user already exists")
+//     }
+
+//     // chick if role exists
+//     // const roleExists = await prisma.role.findUnique({
+//     //     where: {
+//     //         id: parseInt(roleId)
+//     //     }
+//     // })
+//     // if (!roleExists) {
+//     //     res.status(401)
+//     //     throw new Error("role not found")
+//     // }
+//     // Hash password
+//     const salt = await bcrypt.genSalt(10)
+//     const HashPassword = await bcrypt.hash(mot_de_passe, salt)
+
+//     // Create the new user
+//     try {
+//         const user = await prisma.utilisateur.create({
+//             data: {
+//                 prenom,
+//                 nom,
+//                 date_de_naissance,
+//                 telephone,
+//                 email,
+//                 mot_de_passe: HashPassword,
+//                 // roleId: parseInt(roleId)
+//             }
+//         });
+//         res.status(201).json({ status: "admin created successfully", id: user.id, email: user.email })
+
+//     } catch (error) {
+//         res.status(401).json({ status: "fail", message: error.message })
+//     }
+// })
+
 const CreateUser = asyncHandler(async (req, res) => {
 
-    const { first_name, last_name , birthday, photo, phone, email, password, roleId } = req.body
+    const { prenom, nom, date_de_naissance, telephone, email, mot_de_passe } = req.body
 
     // check is email
     if (!email.includes('@')) {
@@ -54,66 +118,79 @@ const CreateUser = asyncHandler(async (req, res) => {
     }
 
     // check length of password
-    if (password.length < 8) {
+    if (mot_de_passe.length < 8) {
         res.status(401).json({ status: "password must be at least 8 characters" })
     }
 
     //  check if all fields exists
-    if (!first_name || !last_name || !birthday || !photo || !phone || !email || !password || !roleId) {
+
+    if (!prenom || !nom || !date_de_naissance || !telephone || !email || !mot_de_passe) {
         res.status(401)
         throw new Error("please add all fields")
     }
 
     // check if user exists by email
-    const userExists = await prisma.user.findUnique({
+    const userExists = await prisma.utilisateur.findUnique({
         where: {
             email: email
         }
     })
+
     if (userExists) {
         res.status(401)
         throw new Error("user already exists")
     }
 
     // chick if role exists
+    const { role: role } = req.body;
+
+    // Check if role exists
     const roleExists = await prisma.role.findUnique({
         where: {
-            id: parseInt(roleId)
-        }
-    })
+            role: role,
+        },
+    });
+
     if (!roleExists) {
-        res.status(401)
-        throw new Error("role not found")
+        res.status(401);
+        throw new Error("Role not found");
     }
+
 
     // Hash password
     const salt = await bcrypt.genSalt(10)
-    const HashPassword = await bcrypt.hash(password, salt)
+    const HashPassword = await bcrypt.hash(mot_de_passe, salt)
 
     // Create the new user
     try {
-        const user = await prisma.user.create({
+        const user = await prisma.utilisateur.create({
             data: {
-                first_name: first_name,
-                last_name: last_name,
-                birthday: birthday,
-                photo: photo,
-                phone: phone,
-                email: email,
-                password: HashPassword,
-                roleId: roleId
-            }
+                prenom,
+                nom,
+                date_de_naissance,
+                telephone,
+                email,
+                mot_de_passe: HashPassword,
+                role: {
+                    connect: {
+                        role: role,
+                    },
+                },
+            },
         });
-        res.status(201).json({ status: "admin created successfully", id: user.id, email: user.email })
-
+        res.status(201).json({
+            status: "admin created successfully",
+            id: user.id,
+            email: user.email,
+        });
     } catch (error) {
-        const errors = handleErrors(err)
-        res.status(401).json({ status: "fail", message: errors })
+        res.status(401).json({ status: "fail", message: error.message });
     }
 })
 
+
 const LoginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body
+    const { email, mot_de_passe } = req.body
 
     // check is email
     if (!email.includes('@')) {
@@ -121,17 +198,17 @@ const LoginUser = asyncHandler(async (req, res) => {
     }
 
     // check length of password
-    if (password.length < 8) {
+    if (mot_de_passe < 8) {
         res.status(401).json({ status: "invalid email or password..!!" })
     }
 
     //  check if all fields exists
-    if (!email || !password) {
+    if (!email || !mot_de_passe) {
         res.status(401).status('same thing is wrong with you..!!')
     }
 
     // check if user exists
-    const user = await prisma.user.findUnique({
+    const user = await prisma.Utilisateur.findUnique({
         where: {
             email: email
         }
@@ -141,7 +218,7 @@ const LoginUser = asyncHandler(async (req, res) => {
     }
 
     // check if password is correct
-    const isMatch = await bcrypt.compare(password, user.password)
+    const isMatch = await bcrypt.compare(mot_de_passe, user.mot_de_passe)
     if (!isMatch) {
         res.status(401).json({ status: "invalid email or password..!!" })
     }
@@ -155,7 +232,7 @@ const LoginUser = asyncHandler(async (req, res) => {
 })
 
 const UpdateUser = asyncHandler(async (req, res) => {
-    const { first_name, last_name, birthday, photo, phone, email, password } = req.body
+    const { prenom, nom, date_de_naissance, telephone, email, mot_de_passe} = req.body
 
     // check is email   
     if (!email.includes('@')) {
@@ -163,37 +240,36 @@ const UpdateUser = asyncHandler(async (req, res) => {
     }
 
     // check length of password
-    if (password.length < 8) {
+    if (mot_de_passe < 8) {
         res.status(401).json({ status: "password must be at least 8 characters" })
     }
 
     //  check if all fields exists
-    if (!first_name || !last_name || !birthday || !photo || !phone || !email || !password) {
+    if (!prenom || !nom || !date_de_naissance || !telephone || !email || !mot_de_passe) {
         res.status(401)
         throw new Error("please add all fields")
     }
 
     // Hash password
     const salt = await bcrypt.genSalt(10)
-    const HashPassword = await bcrypt.hash(password, salt)
+    const HashPassword = await bcrypt.hash(mot_de_passe, salt)
     
     // update User
     try {
-        const user = await prisma.user.update({
+        const user = await prisma.Utilisateur.update({
             where: {
                 id: Number(req.params.id)
             },
             data: {
-                first_name,
-                last_name,
-                birthday,
-                photo,
-                phone,
+                prenom,
+                nom,
+                date_de_naissance,
+                telephone,
                 email,
-                password: HashPassword
+                mot_de_passe: HashPassword
             }
         })
-        res.status(201).json({ status: "admin update successfully", id: admin.id, email: admin.email })
+        res.status(201).json({ status: "user updated successfully", user: user })
     } catch (err) {
         const errors = handleErrors(err)
         res.status(401).json({ status: "fail", message: errors })
@@ -202,7 +278,7 @@ const UpdateUser = asyncHandler(async (req, res) => {
 
 const DeleteUser = asyncHandler(async (req, res) => {
     try {
-        const user = await prisma.user.delete({
+        const user = await prisma.Utilisateur.delete({
             where: {
                 id: Number(req.params.id)
             }

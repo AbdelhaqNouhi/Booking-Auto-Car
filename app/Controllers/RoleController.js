@@ -1,27 +1,26 @@
 const { PrismaClient } = require('@prisma/client')
 const asyncHandler = require('express-async-handler')
 
-
 const prisma = new PrismaClient()
 
 const CreateRole = asyncHandler(async (req, res) => {
 
-    const { name } = req.body;
-
+    const { role } = req.body;
     //  check if role already exists
-    const role = await prisma.role.findUnique({
+    const addRole = await prisma.role.findUnique({
         where: {
-            name: name
+            role: role,
+            
         }
     })
-    if (role) {
+    if (addRole) {
         res.status(401).json({ status: "fail", message: "role already exists" })
     }
 
     try {
         const newRole = await prisma.role.create({
             data: {
-                name: name,
+                role: role
             }
         });
         res.status(201).json(newRole)

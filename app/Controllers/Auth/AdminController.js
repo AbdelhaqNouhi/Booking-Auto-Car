@@ -7,7 +7,7 @@ const prisma = new PrismaClient()
 
 
 const handleErrors = (err) => {
-    let errors = { first_name: '', last_name: '', cin: '', phone: '', email: '', password: '' }
+    let errors = { prenom: '', nom: '', email: '', mot_de_passe: '', roleId: '' }
 
     if (err.message.includes("Admin validation failed")) {
         Object.values(err.errors).forEach(({ properties }) => {
@@ -31,7 +31,7 @@ const GetAllAdmin = asyncHandler(async (req, res) => {
 
 const CreateAdmin = asyncHandler(async (req, res) => {
     
-    const { first_name, last_name, email, password, roleId } = req.body
+    const { prenom, nom, email, mot_de_passe, roleId } = req.body
 
     // check is email
     if (!email.includes('@')) {
@@ -39,12 +39,12 @@ const CreateAdmin = asyncHandler(async (req, res) => {
     }
 
     // check length of password
-    if (password.length < 8) {
+    if (mot_de_passe.length < 8) {
         res.status(401).json({ status: "password must be at least 8 characters" })
     }
 
     // check if all fields are exist
-    if (!first_name || !last_name || !email || !password || !roleId) {
+    if (!prenom || !nom || !email || !mot_de_passe || !roleId) {
         res.status(401).json({ status: "please fill all fields" })
     }
 
@@ -71,16 +71,16 @@ const CreateAdmin = asyncHandler(async (req, res) => {
 
     // hash password
     const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(password, salt)
+    const hashedPassword = await bcrypt.hash(mot_de_passe, salt)
 
     // create user
     try {
         const admin = await prisma.admin.create({
             data: {
-                first_name: first_name,
-                last_name: last_name,
+                prenom: prenom,
+                nom: nom,
                 email: email,
-                password: hashedPassword,
+                mot_de_passe: hashedPassword,
                 roleId: parseInt(roleId)
             }
         })
@@ -94,7 +94,7 @@ const CreateAdmin = asyncHandler(async (req, res) => {
 
 const LoginAdmin = asyncHandler(async (req, res) => {
         
-    const { email, password } = req.body
+    const { email, mot_de_passe } = req.body
 
     // check is email
     if (!email.includes('@')) {
@@ -102,12 +102,12 @@ const LoginAdmin = asyncHandler(async (req, res) => {
     }
 
     // check length of password
-    if (password.length < 8) {
+    if (mot_de_passe.length < 8) {
         res.status(401).json({ status: "invalid email or password..!!" })
     }
 
     //  check if all fields exists
-    if (!email || !password) {
+    if (email || mot_de_passe) {
         res.status(401).status('same thing is wrong with you..!!')
     }
 
@@ -122,7 +122,7 @@ const LoginAdmin = asyncHandler(async (req, res) => {
     }
 
     // check if password is correct
-    const isMatch = await bcrypt.compare(password, user.password)
+    const isMatch = await bcrypt.compare(mot_de_passe, user.mot_de_passe)
     if (!isMatch) {
         res.status(401).json({ status: "invalid email or password..!!" })
     }

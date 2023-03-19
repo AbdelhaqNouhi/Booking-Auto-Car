@@ -4,9 +4,9 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 const handleErrors = (err) => {
-    let errors = { first_name: '', last_name: '', cin: '', phone: '', email: '', password: '' }
+    let errors = { de, a, date, heure }
 
-    if (err.message.includes("Travel validation failed")) {
+    if (err.message.includes("failed to delete travel")) {
         Object.values(err.errors).forEach(({ properties }) => {
             errors[properties.path] = properties.message
         })
@@ -15,12 +15,12 @@ const handleErrors = (err) => {
 }
 
 const SearchTravel = asyncHandler (async (req, res) => {
-    const { from, to, date } = req.params;
+    const { de, a, date} = req.params;
 
-    const searchResults = await prisma.travel.findMany({
+    const searchResults = await prisma.voyage.findMany({
         where: {
-            from: from,
-            to: to,
+            de: de,
+            a: a,
             date: date,
         },
     });
@@ -35,7 +35,7 @@ const SearchTravel = asyncHandler (async (req, res) => {
 
 const GetAllTravel = asyncHandler (async(req, res) => {
     try {
-        const travels = await prisma.travel.findMany();
+        const travels = await prisma.voyage.findMany();
         res.status(201).json(travels);
     } catch (error) {
         res.status(401).json({ status: 'fail' });
@@ -44,7 +44,7 @@ const GetAllTravel = asyncHandler (async(req, res) => {
 
 const GetTravelById = asyncHandler (async(req, res) => {
     try {
-        const travel = await prisma.travel.findUnique({
+        const travel = await prisma.voyage.findUnique({
             where: {
                 id: parseInt(req.params.id),
             },
@@ -60,14 +60,14 @@ const GetTravelById = asyncHandler (async(req, res) => {
 });
 
 const CreateTravel = asyncHandler(async (req, res) => {
-    const { from, to, date, time } = req.body;
+    const { de, a, date, heure } = req.body;
     try {
-        const createdTravel = await prisma.travel.create({
+        const createdTravel = await prisma.voyage.create({
             data: {
-                from,
-                to,
+                de,
+                a,
                 date,
-                time,
+                heure,
             },
         });
         res.status(201).json(createdTravel);
@@ -78,7 +78,7 @@ const CreateTravel = asyncHandler(async (req, res) => {
 
 const UpdateTravel = async (req, res) => {
     try {
-        const travel = await prisma.travel.findUnique({
+        const travel = await prisma.voyage.findUnique({
             where: {
                 id: parseInt(req.params.id),
             },
@@ -89,11 +89,16 @@ const UpdateTravel = async (req, res) => {
             return;
         }
 
-        const updatedTravel = await prisma.travel.update({
+        const updatedTravel = await prisma.Voyage.update({
             where: {
                 id: parseInt(req.params.id),
             },
-            data: req.body,
+            data: {
+                de: req.body.de,
+                a: req.body.a,
+                date: req.body.date,
+                heure: req.body.heure
+            }
         });
 
         res.status(200).json(updatedTravel);
@@ -102,31 +107,28 @@ const UpdateTravel = async (req, res) => {
     }
 };
 
-const DeleteTravel = asyncHandler (async (req, res) => {
-    
-    const travel = await prisma.travel.findUnique({
+const DeleteTravel = asyncHandler(async (req, res) => {
+    const travel = await prisma.voyage.findUnique({
         where: {
             id: parseInt(req.params.id),
         },
     });
-
     if (!travel) {
-        res.status(401).json({ status: 'travel not found' });
+        res.status(401).json({ status: 'undefined travel' });
         return;
     }
-
     try {
-        const deletedTravel = await prisma.travel.delete({
+        const deletedTravel = await prisma.voyage.delete({
             where: {
                 id: parseInt(req.params.id),
             },
         });
-        res.status(201).json({ status: 'success', message: 'travel deleted successfully'});
-
-    } catch (err) {
-        res.status(401).json({ status: "fail", message: err.message })
+        res.status(201).json("Travel deleted");
+    } catch (error) {
+        res.status(401).json({ status: 'failed to delete travel' });
     }
 });
+
 
 module.exports = {
     SearchTravel,

@@ -5,19 +5,30 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 
+const handleErrors = (err) => {
+    let errors = { prix, voyageId, utilisateursId}
+
+    if (err.message.includes("User validation failed")) {
+        Object.values(err.errors).forEach(({ properties }) => {
+            errors[properties.path] = properties.message
+        })
+    }
+    return errors;
+}
+
 const CreateTicket = asyncHandler(async (req, res) => {
 
-    const {price, userId, travelId } = req.body
+    const { prix, voyageId, utilisateursId } = req.body
 
-    if (!price || !userId || !travelId) {
+    if (!prix || !voyageId || !utilisateursId) {
         res.status(401).json({ status: 'Please add all fields' })
         return
     }
 
     // check if user exists
-    const userExists =  await prisma.user.findUnique({
+    const userExists = await prisma.utilisateur.findUnique({
         where: {
-            id: parseInt(userId)
+            id: parseInt(utilisateursId)
         }
     })
     if (!userExists) {
@@ -26,9 +37,9 @@ const CreateTicket = asyncHandler(async (req, res) => {
     }
 
     // check if travel exists
-    const travelExists =  await prisma.travel.findUnique({
+    const travelExists =  await prisma.voyage.findUnique({
         where: {
-            id: parseInt(travelId)
+            id: parseInt(voyageId)
         }
     })
     if (!travelExists) {
@@ -37,24 +48,25 @@ const CreateTicket = asyncHandler(async (req, res) => {
     }
 
     try {
-        const newTicket = await prisma.ticket.create({
+        const ticket = await prisma.billet.create({
             data: {
-                price: price,
-                userId: parseInt(userId),
-                travelId: parseInt(travelId)
+                prix: prix,
+                voyage: { connect: { id: parseInt(voyageId) } },
+                utilisateur: { connect: { id: parseInt(utilisateursId) } }
             }
-        })
-        res.status(201).json(newTicket)
+        });
+        res.status(201).json({ status: "success", message: "Ticket created successfully" });
+
+    } catch (err) {
+        res.status(401).json({ status: "fail", message: err.message });
     }
-    catch (error) {
-        res.status(401).json({ status: 'fail'})
-    }
+
 })
 
 const GetAllTicket = asyncHandler(async (req, res) => {
 
     try {
-        const tickets = await prisma.ticket.findMany()
+        const tickets = await prisma.billet.findMany()
         res.status(201).json(tickets)
         
     } catch (err) {
@@ -66,7 +78,7 @@ const GetAllTicket = asyncHandler(async (req, res) => {
 const GetOneTicket = asyncHandler(async (req, res) => {
 
     // check if ticket exists
-    const ticketExists = await prisma.ticket.findUnique({
+    const ticketExists = await prisma.billet.findUnique({
         where: {
             id: parseInt(req.params.id)
         }
@@ -76,12 +88,12 @@ const GetOneTicket = asyncHandler(async (req, res) => {
     }
 
     try {
-        const ticket = await prisma.ticket.findUnique({
+        const ticket = await prisma.billet.findUnique({
             where: {
                 id: parseInt(req.params.id)
             }
         })
-        res.status(201).json({ status: "success", message: "Ticket deleted successfully" })
+        res.status(201).json({ status: "success", ticket })
 
     } catch (err) {
         res.status(401).json({ status: "fail", message: err.message })
@@ -89,17 +101,17 @@ const GetOneTicket = asyncHandler(async (req, res) => {
 })
 
 const UpdateTicket = asyncHandler(async (req, res) => {
-        const {price, userId, travelId } = req.body
+        const {prix, voyageId, utilisateurId } = req.body
     
-        if (!price || !userId || !travelId) {
+        if (!prix || !utilisateurId || !voyageId) {
             res.status(401).json({ status: 'Please add all fields' })
             return
         }
     
         // check if user exists
-        const userExists =  await prisma.user.findUnique({
+        const userExists = await prisma.utilisateur.findUnique({
             where: {
-                id: parseInt(userId)
+                id: parseInt(utilisateurId)
             }
         })
         if (!userExists) {
@@ -108,9 +120,9 @@ const UpdateTicket = asyncHandler(async (req, res) => {
         }
     
         // check if travel exists
-        const travelExists =  await prisma.travel.findUnique({
+        const travelExists =  await prisma.voyage.findUnique({
             where: {
-                id: parseInt(travelId)
+                id: parseInt(voyageId)
             }
         })
         if (!travelExists) {
@@ -118,28 +130,28 @@ const UpdateTicket = asyncHandler(async (req, res) => {
             return
         }
     
-        try {
-            const ticket = await prisma.ticket.update({
-                where: {
-                    id: parseInt(req.params.id)
-                },
-                data: {
-                    price: price,
-                    userId: parseInt(userId),
-                    travelId: parseInt(travelId)
-                }
-            })
-            res.status(201).json(ticket)
-        }
-        catch (error) {
-            res.status(401).json({ status: 'fail'})
-        }
+    try {
+        const ticket = await prisma.billet.update({
+            where: {
+                id: parseInt(req.params.id)
+            },
+            data: {
+                prix: req.body.prix,
+                voyageId: req.body.voyageId,
+                utilisateurId: req.body.utilisateurId
+            }
+        })
+        res.status(201).json({ status: "success", message: "Ticket updated successfully" })
+
+    } catch (err) {
+        res.status(401).json({ status: "fail", message: err.message })
+    }   
 })
 
 const DeleteTicket = asyncHandler(async (req, res) => {
 
     // check if ticket exists
-    const ticketExists = await prisma.ticket.findUnique({
+    const ticketExists = await prisma.billet.findUnique({
         where: {
             id: parseInt(req.params.id)
         }
@@ -149,7 +161,7 @@ const DeleteTicket = asyncHandler(async (req, res) => {
     }
 
     try {
-        const ticket = await prisma.ticket.delete({
+        const ticket = await prisma.billet.delete({
             where: {
                 id: parseInt(req.params.id)
             }
